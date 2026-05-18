@@ -57,3 +57,46 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 ## License
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+
+# BPRS Kunjungan - Aplikasi Manajemen Kunjungan
+
+Aplikasi untuk manajemen kunjungan berbasis Laravel.
+
+## Prasyarat
+
+Sebelum menjalankan project, pastikan komputer Anda telah terinstall:
+- PHP >= 8.1
+- Composer
+- MySQL / MariaDB
+- Node.js & NPM
+
+## Cara Install & Menjalankan Project
+
+### 1. Clone Repository
+git clone https://https://github.com/fadlan2609/kunjungan-aoab.git
+cd kunjungan-aoab
+2. Install Dependencies PHP
+composer install
+3. Copy File Environment
+cp .env.example .env
+4. Generate Application Key
+php artisan key:generate
+5. Install Dependencies JavaScript
+npm install
+6. Compile Assets
+npm run build
+7. Setup Database
+Buat database baru di MySQL, lalu buka file .env dan sesuaikan konfigurasi database:
+
+env
+DB_DATABASE=nama_database_anda
+DB_USERNAME=root
+DB_PASSWORD=
+8. Jalankan Migrasi
+php artisan migrate
+9. Jalankan Seeder (Data Awal)
+php artisan db:seed
+10. Buat Storage Link
+php artisan storage:link
+11. Jalankan Server
+php artisan serve
