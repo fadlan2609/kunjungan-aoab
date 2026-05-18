@@ -6829,7 +6829,5 @@ function hideTypingIndicator() {
     if (typingIndicator) typingIndicator.remove();
 }
 </script>
-    
-    
 </body>
 </html>
