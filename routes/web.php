@@ -6,6 +6,7 @@ use App\Http\Controllers\KunjunganController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\LogActivityController;
+use App\Http\Controllers\Api\DashboardController;  // ← PASTIKAN IMPORT INI ADA
 
 /*
 |--------------------------------------------------------------------------
@@ -47,7 +48,7 @@ Route::prefix('api')->group(function () {
     
     // ========== PUBLIC ROUTES (No Auth - BISA DIAKSES SEBELUM LOGIN) ==========
     Route::post('/login', [AuthController::class, 'login']);
-    Route::get('/check-auth', [AuthController::class, 'checkAuth']);  // ← PINDAHKAN KE SINI!
+    Route::get('/check-auth', [AuthController::class, 'checkAuth']);
     
     // ========== PROTECTED ROUTES (Harus sudah login) ==========
     Route::middleware(['auth'])->group(function () {
@@ -98,7 +99,10 @@ Route::prefix('api')->group(function () {
         
         // Statistics Routes
         Route::get('/kunjungan/statistics/dashboard', [KunjunganController::class, 'statistics']);
-        Route::get('/dashboard/stats', [KunjunganController::class, 'statistics']);
+        
+        // ========== DASHBOARD ROUTES (TARUH DI SINI - DI DALAM MIDDLEWARE AUTH) ==========
+        Route::get('/dashboard/stats', [DashboardController::class, 'stats']);
+        Route::get('/dashboard/export', [DashboardController::class, 'export']);
         
         // Bulk Operations
         Route::post('/kunjungan/bulk/approve', [KunjunganController::class, 'bulkApprove']);

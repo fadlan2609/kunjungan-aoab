@@ -15,6 +15,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     
     <link rel="icon" type="image/png" href="{{ asset('images/photo1.png') }}">
@@ -1588,6 +1589,90 @@
     transform: translateY(-1px);
 }
 
+/* Dashboard Styles */
+.dashboard-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.dashboard-card {
+    background: white;
+    border-radius: 15px;
+    padding: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.dashboard-card:hover {
+    transform: translateY(-3px);
+}
+
+.dashboard-card .card-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    margin-bottom: 12px;
+}
+
+.dashboard-card .card-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+}
+
+.dashboard-card .card-label {
+    font-size: 12px;
+    color: #666;
+    margin-top: 5px;
+}
+
+.dashboard-card .card-trend {
+    font-size: 11px;
+    margin-top: 8px;
+}
+
+.trend-up { color: #28a745; }
+.trend-down { color: #dc3545; }
+
+.chart-container {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.chart-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+    border-left: 4px solid #667eea;
+    padding-left: 12px;
+}
+
+.chart-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 768px) {
+    .chart-grid {
+        grid-template-columns: 1fr;
+    }
+    .dashboard-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* Responsive untuk mobile */
 @media (max-width: 768px) {
     .table-footer {
@@ -1756,6 +1841,157 @@
                 </div>
             </div>
         </div>
+
+        <!-- DASHBOARD SECTION -->
+<!-- DASHBOARD SECTION -->
+<div id="dashboardSection" class="form-section" style="display: none;">
+    <h2><i class="fas fa-chart-line"></i> Dashboard Statistik</h2>
+    
+    <!-- ========== FILTER BOX ========== -->
+    <div style="background: #f8f9fa; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: flex-end;">
+            <!-- Filter Cabang -->
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555;">
+                    <i class="fas fa-building"></i> Cabang
+                </label>
+                <select id="dashboardFilterCabang" style="width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+                    <option value="all">Semua Cabang</option>
+                    <option value="Pusat">Pusat</option>
+                    <option value="Kisaran">Kisaran</option>
+                    <option value="Perdagangan">Perdagangan</option>
+                    <option value="Pematangsiantar">Pematangsiantar</option>
+                    <option value="Sidamanik">Sidamanik</option>
+                    <option value="Stabat">Stabat</option>
+                </select>
+            </div>
+            
+            <!-- Filter AO -->
+            <div style="flex: 1; min-width: 180px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555;">
+                    <i class="fas fa-user-tie"></i> Account Officer
+                </label>
+                <select id="dashboardFilterAO" style="width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+                    <option value="all">Semua AO</option>
+                </select>
+            </div>
+            
+            <!-- Filter Status -->
+            <div style="flex: 1; min-width: 140px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555;">
+                    <i class="fas fa-chart-simple"></i> Status
+                </label>
+                <select id="dashboardFilterStatus" style="width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+                    <option value="all">Semua Status</option>
+                    <option value="pending">⏳ Pending</option>
+                    <option value="approved">✅ Disetujui</option>
+                    <option value="rejected">❌ Ditolak</option>
+                </select>
+            </div>
+            
+            <!-- Filter Tanggal Mulai -->
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555;">
+                    <i class="fas fa-calendar-alt"></i> Dari Tanggal
+                </label>
+                <input type="date" id="dashboardFilterStartDate" style="width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+            </div>
+            
+            <!-- Filter Tanggal Sampai -->
+            <div style="flex: 1; min-width: 150px;">
+                <label style="display: block; font-size: 12px; font-weight: 600; margin-bottom: 5px; color: #555;">
+                    <i class="fas fa-calendar-alt"></i> Sampai Tanggal
+                </label>
+                <input type="date" id="dashboardFilterEndDate" style="width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+            </div>
+            
+            <!-- Tombol Aksi -->
+            <div style="display: flex; gap: 8px;">
+                <button id="dashboardApplyFilter" class="btn-primary" style="padding: 8px 16px;">
+                    <i class="fas fa-filter"></i> Terapkan
+                </button>
+                <button id="dashboardResetFilter" class="btn-secondary" style="padding: 8px 16px;">
+                    <i class="fas fa-sync-alt"></i> Reset
+                </button>
+            </div>
+        </div>
+        
+        <!-- Quick Date Buttons -->
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; padding-top: 10px; border-top: 1px solid #e0e0e0;">
+            <span style="font-size: 12px; color: #666; align-self: center;"><i class="fas fa-bolt"></i> Cepat:</span>
+            <button type="button" class="btn-info" onclick="setQuickDate('today')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-sun"></i> Hari Ini
+            </button>
+            <button type="button" class="btn-info" onclick="setQuickDate('yesterday')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-calendar-day"></i> Kemarin
+            </button>
+            <button type="button" class="btn-info" onclick="setQuickDate('week')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-calendar-week"></i> Minggu Ini
+            </button>
+            <button type="button" class="btn-info" onclick="setQuickDate('month')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-calendar-alt"></i> Bulan Ini
+            </button>
+            <button type="button" class="btn-info" onclick="setQuickDate('lastMonth')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-calendar-minus"></i> Bulan Lalu
+            </button>
+            <button type="button" class="btn-info" onclick="setQuickDate('year')" style="padding: 5px 12px; font-size: 11px;">
+                <i class="fas fa-calendar-year"></i> Tahun Ini
+            </button>
+        </div>
+        
+        <!-- Info Filter Aktif (HANYA SEKALI) -->
+        <div id="dashboardFilterInfo" style="margin-top: 10px; font-size: 11px; color: #667eea; display: none;">
+            <i class="fas fa-info-circle"></i> <span id="dashboardFilterInfoText"></span>
+            <button onclick="resetDashboardFilters()" style="background: none; border: none; color: #dc3545; cursor: pointer; margin-left: 10px;">
+                <i class="fas fa-times"></i> Hapus filter
+            </button>
+        </div>
+    </div>
+    <!-- ========== END FILTER BOX ========== -->
+    
+    <!-- Summary Cards -->
+    <div class="dashboard-cards" id="summaryCards">
+        <!-- Akan diisi JS -->
+    </div>
+    
+    <!-- Charts Grid -->
+    <div class="chart-grid">
+        <div class="chart-container">
+            <div class="chart-title"><i class="fas fa-chart-bar"></i> Tren Kunjungan per Bulan</div>
+            <canvas id="monthlyChart" style="max-height: 300px;"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title"><i class="fas fa-chart-pie"></i> Distribusi Status</div>
+            <canvas id="statusChart" style="max-height: 300px;"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title"><i class="fas fa-trophy"></i> Top 5 AO</div>
+            <canvas id="topAOChart" style="max-height: 300px;"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <div class="chart-title"><i class="fas fa-chart-line"></i> Tren Harian (7 Hari)</div>
+            <canvas id="dailyChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+    
+    <!-- Cabang Stats Table -->
+    <div class="chart-container">
+        <div class="chart-title"><i class="fas fa-building"></i> Statistik per Cabang</div>
+        <div class="table-container">
+            <table class="table" id="cabangStatsTable">
+                <thead>
+                    <tr><th>Cabang</th><th>Jumlah Kunjungan</th><th>Persentase</th></tr>
+                </thead>
+                <tbody id="cabangStatsBody">
+                    <tr><td colspan="3" class="text-center">Memuat data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
         
         <!-- Form untuk AO -->
         <div class="form-section" id="formSection" style="display: none;">
@@ -1806,9 +2042,9 @@
                     </div>
                     
                     <div class="form-group">
-                        <label><i class="fas fa-clipboard-list"></i> Keterangan</label>
-                        <input type="text" id="keterangan" placeholder="Contoh: Survey, Pengajuan, dll">
-                    </div>
+    <label><i class="fas fa-clipboard-list"></i> Keterangan</label>
+    <textarea id="keterangan" rows="3" placeholder="Contoh: Survey, Pengajuan, dll" style="resize: vertical;"></textarea>
+</div>
                 </div>
                 
                 <!-- TAMBAHKAN INI SETELAHNYA -->
@@ -1904,9 +2140,21 @@
                 <button class="btn-filter" onclick="filterByDate()">
                     <i class="fas fa-filter"></i> Filter Tanggal
                 </button>
-                <button class="btn-clear-filter" onclick="clearDateFilter()">
-                    <i class="fas fa-times"></i> Hapus Filter
-                </button>
+
+                <!-- Di dalam div filter-date-container, setelah filter end date -->
+<div class="filter-date-group">
+    <label><i class="fas fa-chart-simple"></i> Status:</label>
+    <select id="filterStatus" style="padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px;">
+        <option value="all">Semua Status</option>
+        <option value="pending">⏳ Pending</option>
+        <option value="approved">✅ Disetujui</option>
+        <option value="rejected">❌ Ditolak</option>
+    </select>
+</div>
+
+                <button class="btn-clear-filter" onclick="clearAllFilters()">
+    <i class="fas fa-times"></i> Hapus Semua Filter
+</button>
             </div>
             
             <div class="search-box">
@@ -2327,6 +2575,7 @@
     let rejectId = null;
     let dateFilterStart = null;
     let dateFilterEnd = null;
+    let statusFilter = 'all';
     
     // ==================== LOADING FUNCTIONS (DITEMPATKAN DI AWAL) ====================
 
@@ -2659,14 +2908,27 @@ function closeLihatHasilModal() {
         showToast(`Filter tanggal: ${dateFilterStart || 'awal'} s/d ${dateFilterEnd || 'akhir'}`, true);
     }
     
-    function clearDateFilter() {
-        document.getElementById('filterStartDate').value = '';
-        document.getElementById('filterEndDate').value = '';
-        dateFilterStart = null;
-        dateFilterEnd = null;
-        applyFilters();
-        showToast('Filter tanggal dihapus', true);
+    function clearAllFilters() {
+    // Reset date filters
+    document.getElementById('filterStartDate').value = '';
+    document.getElementById('filterEndDate').value = '';
+    dateFilterStart = null;
+    dateFilterEnd = null;
+    
+    // Reset status filter (TAMBAHKAN INI)
+    const statusSelect = document.getElementById('filterStatus');
+    if (statusSelect) {
+        statusSelect.value = 'all';
+        statusFilter = 'all';
     }
+    
+    // Reset search
+    document.getElementById('searchInput').value = '';
+    
+    // Apply all filters (which will now show all data)
+    applyFilters();
+    showToast('Semua filter dihapus', true);
+}
     
     // ==================== UPDATE AO DROPDOWN ====================
 function updateAODropdown() {
@@ -2683,40 +2945,62 @@ function updateAODropdown() {
 }
     
     function applyFilters() {
-        let result = [...allData];
-        
-        if (dateFilterStart || dateFilterEnd) {
-            result = result.filter(item => {
-                const tgl = item.tanggal_kunjungan;
-                if (!tgl) return false;
-                if (dateFilterStart && tgl < dateFilterStart) return false;
-                if (dateFilterEnd && tgl > dateFilterEnd) return false;
-                return true;
-            });
-        }
-        
-        const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
-        if (keyword !== '') {
-            result = result.filter(item => {
-                return (
-                    (item.nama_ao?.toLowerCase().includes(keyword)) ||
-                    (item.nama_cabang?.toLowerCase().includes(keyword)) ||
-                    (item.nama_nasabah?.toLowerCase().includes(keyword)) ||
-                    (item.no_pembiayaan?.toString().toLowerCase().includes(keyword)) ||
-                    (item.alamat?.toLowerCase().includes(keyword))
-                );
-            });
-        }
-        
-        filteredData = result;
-        currentPage = 1;
-        renderTable();
-        
-        // Reset checkbox select all
+    let result = [...allData];
+    
+    // Filter tanggal
+    if (dateFilterStart || dateFilterEnd) {
+        result = result.filter(item => {
+            const tgl = item.tanggal_kunjungan;
+            if (!tgl) return false;
+            if (dateFilterStart && tgl < dateFilterStart) return false;
+            if (dateFilterEnd && tgl > dateFilterEnd) return false;
+            return true;
+        });
+    }
+    
+    // Filter status (TAMBAHKAN INI)
+    if (statusFilter && statusFilter !== 'all') {
+        result = result.filter(item => item.status === statusFilter);
+    }
+    
+    // Search keyword
+    const keyword = document.getElementById('searchInput').value.toLowerCase().trim();
+    if (keyword !== '') {
+        result = result.filter(item => {
+            return (
+                (item.nama_ao?.toLowerCase().includes(keyword)) ||
+                (item.nama_cabang?.toLowerCase().includes(keyword)) ||
+                (item.nama_nasabah?.toLowerCase().includes(keyword)) ||
+                (item.no_pembiayaan?.toString().toLowerCase().includes(keyword)) ||
+                (item.alamat?.toLowerCase().includes(keyword))
+            );
+        });
+    }
+    
+    filteredData = result;
+    currentPage = 1;
+    renderTable();
+    
+    // Reset checkbox select all
     const selectAll = document.getElementById('selectAllCheckbox');
     if (selectAll) selectAll.checked = false;
     updateSelectedCount();
+}
+
+function filterByStatus() {
+    const statusSelect = document.getElementById('filterStatus');
+    if (statusSelect) {
+        statusFilter = statusSelect.value;
+        applyFilters();
+        
+        const statusText = statusSelect.options[statusSelect.selectedIndex].text;
+        if (statusFilter !== 'all') {
+            showToast(`Menampilkan data dengan status: ${statusText}`, true);
+        } else {
+            showToast('Menampilkan semua status', true);
+        }
     }
+}
 
     // ==================== STATUS BADGE ====================
     function getStatusBadge(status) {
@@ -2792,7 +3076,7 @@ function updateAODropdown() {
         }
         
         const keterangan = item.keterangan || '-';
-        const keteranganDisplay = (keterangan !== '-' && keterangan.length > 25) ? 
+        const keteranganDisplay = (keterangan !== '-' && keterangan.length > 100) ? 
             `<span class="clickable-text" onclick='showDetail("Keterangan", ${JSON.stringify(keterangan).replace(/'/g, "\\'")})' title="Klik untuk lihat lengkap" style="display: inline-block;">${escapeHtml(keterangan.substring(0, 25))}...</span>` : 
             `<span title="${escapeHtml(keterangan)}" style="display: inline-block;">${escapeHtml(keterangan)}</span>`;
         
@@ -3263,6 +3547,11 @@ async function exportSelected() {
             
             updateAODropdown();
             renderTable();
+
+            // Load dashboard jika user berhak
+if (currentUser && (currentUser.role === 'manager' || currentUser.role === 'admin' || currentUser.role === 'supervisor')) {
+    await loadDashboard();
+}
         }
         
         // ==================== REMINDER KUNJUNGAN ====================
@@ -5979,179 +6268,856 @@ function startNotificationPolling() {
 // startNotificationPolling();
 // loadNotificationsFromStorage();
 
-    // ==================== EVENT LISTENERS ====================
-document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('loginForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
-    });
-    document.getElementById('kunjunganForm')?.addEventListener('submit', saveKunjungan);
-    document.getElementById('btnCancel')?.addEventListener('click', resetForm);
-    document.getElementById('searchButton')?.addEventListener('click', searchData);
-    document.getElementById('resetButton')?.addEventListener('click', () => { 
-        document.getElementById('searchInput').value = ''; 
-        clearDateFilter();
-    });
-    document.getElementById('refreshButton')?.addEventListener('click', loadData);
-    document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
-    document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage * rowsPerPage < filteredData.length) { currentPage++; renderTable(); } });
-    document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchData(); });
+// Dashboard variables
+let monthlyChart, statusChart, topAOChart, dailyChart;
+let dashboardData = null;
+
+// ========== TAMBAHKAN VARIABEL FILTER DASHBOARD ==========
+let dashboardFilters = {
+    cabang: 'all',
+    ao: 'all',
+    status: 'all',  // ← TAMBAHKAN
+    start_date: null,
+    end_date: null
+};
+// ========== SAMPAI SINI ==========
+
+// Fungsi untuk load dashboard data dengan filter
+// ============ PERBAIKAN FUNGSI LOAD DASHBOARD ============
+async function loadDashboard() {
+    console.log('loadDashboard dipanggil dengan filters:', dashboardFilters);
     
-    // Di dalam DOMContentLoaded, tambahkan:
-document.querySelectorAll('a, button[onclick]').forEach(el => {
-    if (el.getAttribute('href') && !el.getAttribute('href').startsWith('#')) {
-        el.addEventListener('click', () => {
-            if (!el.classList.contains('no-loading')) {
-                startLoadingBar();
-            }
+    // Hanya tampilkan untuk manager, admin, atau supervisor
+    if (!currentUser || (currentUser.role !== 'manager' && currentUser.role !== 'admin' && currentUser.role !== 'supervisor')) {
+        const dashboardSection = document.getElementById('dashboardSection');
+        if (dashboardSection) dashboardSection.style.display = 'none';
+        return;
+    }
+    
+    const dashboardSection = document.getElementById('dashboardSection');
+    if (dashboardSection) dashboardSection.style.display = 'block';
+    
+    // Tampilkan loading
+    showDashboardLoading();
+    
+    try {
+        // Bangun query string dari filter
+        let url = '/api/dashboard/stats?';
+        const params = [];
+        
+        if (dashboardFilters.cabang && dashboardFilters.cabang !== 'all') {
+            params.push(`cabang=${encodeURIComponent(dashboardFilters.cabang)}`);
+        }
+        if (dashboardFilters.ao && dashboardFilters.ao !== 'all') {
+            params.push(`ao=${encodeURIComponent(dashboardFilters.ao)}`);
+        }
+        if (dashboardFilters.status && dashboardFilters.status !== 'all') {
+            params.push(`status=${encodeURIComponent(dashboardFilters.status)}`);
+        }
+        if (dashboardFilters.start_date) {
+            params.push(`start_date=${dashboardFilters.start_date}`);
+        }
+        if (dashboardFilters.end_date) {
+            params.push(`end_date=${dashboardFilters.end_date}`);
+        }
+        
+        url += params.join('&');
+        console.log('Dashboard API URL:', url);
+        
+        const response = await fetch(url, {
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'include'
         });
-    }
-});
-
-// Untuk form submit
-document.querySelectorAll('form').forEach(form => {
-    form.addEventListener('submit', () => {
-        startLoadingBar();
-    });
-});
-    
-    // ========== TAMBAHKAN INI - EVENT LISTENER UNTUK HASIL KUNJUNGAN ==========
-    const hasilKunjunganSelect = document.getElementById('hasilKunjungan');
-    const hasilLainnyaGroup = document.getElementById('hasilLainnyaGroup');
-    
-    if (hasilKunjunganSelect && hasilLainnyaGroup) {
-        // Set initial state (saat halaman dimuat)
-        if (hasilKunjunganSelect.value === 'Lainnya') {
-            hasilLainnyaGroup.style.display = 'block';
-        } else {
-            hasilLainnyaGroup.style.display = 'none';
-        }
         
-        // Event listener saat select berubah
-        hasilKunjunganSelect.addEventListener('change', function() {
-            if (this.value === 'Lainnya') {
-                hasilLainnyaGroup.style.display = 'block';
-                const inputLainnya = document.getElementById('hasilKunjunganLainnya');
-                if (inputLainnya) inputLainnya.focus();
-            } else {
-                hasilLainnyaGroup.style.display = 'none';
-                const inputLainnya = document.getElementById('hasilKunjunganLainnya');
-                if (inputLainnya) inputLainnya.value = '';
-            }
-        });
-    }
-    
-    // ==================== LOADING FUNCTIONS ====================
-
-// Loading overlay
-let loadingTimeout = null;
-
-function showLoading(message = 'Memproses data') {
-    const overlay = document.getElementById('loadingOverlay');
-    const loadingText = overlay?.querySelector('p');
-    
-    if (loadingText) {
-        loadingText.innerHTML = `${message} <span class="dots">...</span>`;
+        const result = await response.json();
+        console.log('Dashboard API response:', result);
         
-        // Animasi dots
-        let dotCount = 0;
-        if (loadingTimeout) clearInterval(loadingTimeout);
-        loadingTimeout = setInterval(() => {
-            dotCount = (dotCount + 1) % 4;
-            const dots = '.'.repeat(dotCount);
-            loadingText.querySelector('.dots').textContent = dots;
-        }, 500);
-    }
-    
-    if (overlay) {
-        overlay.classList.add('show');
-    }
-}
-
-function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.classList.remove('show');
-    }
-    if (loadingTimeout) {
-        clearInterval(loadingTimeout);
-        loadingTimeout = null;
-    }
-}
-
-
-    
-    // ==================== PREVIEW FOTO SEBELUM UPLOAD ====================
-
-// Preview foto saat memilih file
-document.getElementById('foto')?.addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        // Validasi ukuran file (max 5MB)
-        if (file.size > 5 * 1024 * 1024) {
-            showToast('Ukuran foto maksimal 5MB!', false);
-            this.value = '';
-            return;
-        }
-        
-        // Validasi tipe file
-        const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
-        if (!validTypes.includes(file.type)) {
-            showToast('Format foto harus JPG, JPEG, atau PNG!', false);
-            this.value = '';
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const previewContainer = document.getElementById('fotoPreviewContainer');
-            const previewImg = document.getElementById('fotoPreviewImg');
-            const previewName = document.getElementById('fotoPreviewName');
-            const previewSize = document.getElementById('fotoPreviewSize');
+        if (result.success) {
+            dashboardData = result.data;
+            renderSummaryCards(dashboardData.summary);
+            renderMonthlyChart(dashboardData.monthly_stats);
+            renderStatusChart(dashboardData.status_distribution);
+            renderTopAOChart(dashboardData.top_ao);
+            renderDailyChart(dashboardData.daily_trend);
+            renderCabangStats(dashboardData.cabang_stats);
             
-            previewImg.src = event.target.result;
-            previewName.textContent = file.name;
-            previewSize.textContent = ` (${(file.size / 1024).toFixed(1)} KB)`;
-            previewContainer.classList.add('show');
-        };
-        reader.readAsDataURL(file);
+            // Update filter info display
+            if (typeof updateFilterInfoDisplay === 'function') {
+                updateFilterInfoDisplay();
+            }
+            
+            // Tampilkan pesan sukses dengan jumlah data
+            const totalData = dashboardData.summary?.total || 0;
+            console.log(`Dashboard loaded: ${totalData} total data`);
+        } else {
+            console.error('Failed to load dashboard:', result.message);
+            if (typeof showToast === 'function') {
+                showToast('Gagal memuat data dashboard: ' + (result.message || 'Unknown error'), false);
+            }
+        }
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+        if (typeof showToast === 'function') {
+            showToast('Gagal memuat data dashboard', false);
+        }
+    } finally {
+        hideDashboardLoading();
     }
-});
+}
 
+// Fungsi untuk menampilkan loading di chart
+function showDashboardLoading() {
+    const chartContainers = document.querySelectorAll('#dashboardSection .chart-container');
+    chartContainers.forEach(container => {
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+    });
+}
+
+function hideDashboardLoading() {
+    const chartContainers = document.querySelectorAll('#dashboardSection .chart-container');
+    chartContainers.forEach(container => {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    });
+}
+
+// Fungsi untuk update tampilan info filter
+function updateFilterInfoDisplay() {
+    const filterInfoDiv = document.getElementById('dashboardFilterInfo');
+    const filterInfoText = document.getElementById('dashboardFilterInfoText');
     
-    document.addEventListener('click', function(e) {
-        const dropdown = document.querySelector('.export-dropdown');
-        const exportBtn = document.getElementById('exportButton');
-        const exportContent = document.getElementById('exportDropdown');
-        if (exportBtn && exportContent && dropdown) {
-            if (e.target === exportBtn || exportBtn.contains(e.target)) {
-                e.stopPropagation();
-                exportContent.style.display = exportContent.style.display === 'block' ? 'none' : 'block';
-            } else if (!dropdown.contains(e.target)) {
-                exportContent.style.display = 'none';
+    if (!filterInfoDiv || !filterInfoText) return;
+    
+    const activeFilters = [];
+    
+    if (dashboardFilters.cabang && dashboardFilters.cabang !== 'all') {
+        activeFilters.push(`Cabang: ${dashboardFilters.cabang}`);
+    }
+    if (dashboardFilters.ao && dashboardFilters.ao !== 'all') {
+        activeFilters.push(`AO: ${dashboardFilters.ao}`);
+    }
+    // ========== TAMBAHKAN INI ==========
+    if (dashboardFilters.status && dashboardFilters.status !== 'all') {
+        let statusLabel = dashboardFilters.status === 'pending' ? 'Pending' : 
+                         (dashboardFilters.status === 'approved' ? 'Disetujui' : 'Ditolak');
+        activeFilters.push(`Status: ${statusLabel}`);
+    }
+    // ========== SAMPAI SINI ==========
+    if (dashboardFilters.start_date) {
+        activeFilters.push(`Dari: ${formatDate(dashboardFilters.start_date)}`);
+    }
+    if (dashboardFilters.end_date) {
+        activeFilters.push(`Sampai: ${formatDate(dashboardFilters.end_date)}`);
+    }
+    
+    if (activeFilters.length > 0) {
+        filterInfoText.innerHTML = `Filter aktif: ${activeFilters.join(' • ')}`;
+        filterInfoDiv.style.display = 'block';
+    } else {
+        filterInfoDiv.style.display = 'none';
+    }
+}
+
+// Helper format tanggal
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID');
+}
+
+// Render summary cards
+function renderSummaryCards(summary) {
+    const container = document.getElementById('summaryCards');
+    if (!container) return;
+    
+    const approvalRateColor = summary.approval_rate >= 70 ? '#28a745' : (summary.approval_rate >= 40 ? '#ffc107' : '#dc3545');
+    
+    container.innerHTML = `
+        <div class="dashboard-card">
+            <div class="card-icon" style="background: #667eea20; color: #667eea;">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div class="card-value">${summary.total.toLocaleString()}</div>
+            <div class="card-label">Total Kunjungan</div>
+            <div class="card-trend"><i class="fas fa-chart-line"></i> Bulan ini: ${summary.this_month}</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon" style="background: #ffc10720; color: #ffc107;">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div class="card-value">${summary.pending.toLocaleString()}</div>
+            <div class="card-label">Pending</div>
+            <div class="card-trend">Menunggu approval</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon" style="background: #28a74520; color: #28a745;">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="card-value">${summary.approved.toLocaleString()}</div>
+            <div class="card-label">Disetujui</div>
+            <div class="card-trend">${summary.approval_rate}% approval rate</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon" style="background: #dc354520; color: #dc3545;">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <div class="card-value">${summary.rejected.toLocaleString()}</div>
+            <div class="card-label">Ditolak</div>
+            <div class="card-trend">Perlu perhatian</div>
+        </div>
+        <div class="dashboard-card">
+            <div class="card-icon" style="background: #17a2b820; color: #17a2b8;">
+                <i class="fas fa-chart-simple"></i>
+            </div>
+            <div class="card-value">${summary.daily_average}</div>
+            <div class="card-label">Rata-rata/Hari</div>
+            <div class="card-trend"><i class="fas fa-calendar-day"></i> Hari ini: ${summary.today}</div>
+        </div>
+    `;
+}
+
+// Render monthly chart
+function renderMonthlyChart(data) {
+    const ctx = document.getElementById('monthlyChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (monthlyChart) monthlyChart.destroy();
+    
+    monthlyChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.bulan),
+            datasets: [{
+                label: 'Jumlah Kunjungan',
+                data: data.map(d => d.total),
+                backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                borderColor: '#667eea',
+                borderWidth: 2,
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kunjungan` } }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Jumlah' } }
             }
         }
     });
+}
+
+// Render status distribution chart (Pie/Doughnut)
+function renderStatusChart(data) {
+    const ctx = document.getElementById('statusChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (statusChart) statusChart.destroy();
+    
+    const colors = {
+        pending: '#ffc107',
+        approved: '#28a745',
+        rejected: '#dc3545'
+    };
+    
+    statusChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: data.map(d => d.label),
+            datasets: [{
+                data: data.map(d => d.total),
+                backgroundColor: data.map(d => colors[d.status] || '#6c757d'),
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw} (${ctx.raw/data.reduce((a,b) => a + b.total, 0) * 100}%)` } }
+            }
+        }
+    });
+}
+
+// Render top AO chart (Horizontal Bar Chart)
+function renderTopAOChart(data) {
+    const ctx = document.getElementById('topAOChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (topAOChart) topAOChart.destroy();
+    
+    // Jika tidak ada data
+    if (!data || data.length === 0) {
+        topAOChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Tidak ada data'],
+                datasets: [{
+                    label: 'Jumlah Kunjungan',
+                    data: [0],
+                    backgroundColor: '#ccc'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { callbacks: { label: () => 'Tidak ada data' } }
+                }
+            }
+        });
+        return;
+    }
+    
+    const colors = ['#667eea', '#764ba2', '#28a745', '#ffc107', '#fd7e14'];
+    
+    topAOChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: data.map(d => d.nama_ao.length > 15 ? d.nama_ao.substring(0, 12) + '...' : d.nama_ao),
+            datasets: [{
+                label: 'Jumlah Kunjungan',
+                data: data.map(d => d.total),
+                backgroundColor: colors.slice(0, data.length),
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            indexAxis: 'y',
+            plugins: {
+                legend: { display: false },
+                tooltip: { 
+                    callbacks: { 
+                        label: (ctx) => `${ctx.raw} kunjungan` 
+                    } 
+                }
+            },
+            scales: {
+                x: { 
+                    beginAtZero: true, 
+                    ticks: { stepSize: 1 }, 
+                    title: { display: true, text: 'Jumlah Kunjungan', font: { size: 10 } }
+                },
+                y: {
+                    ticks: { font: { size: 10 } }
+                }
+            }
+        }
+    });
+}
+
+// Render daily trend chart
+function renderDailyChart(data) {
+    const ctx = document.getElementById('dailyChart')?.getContext('2d');
+    if (!ctx) return;
+    
+    if (dailyChart) dailyChart.destroy();
+    
+    dailyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.map(d => d.tanggal),
+            datasets: [{
+                label: 'Kunjungan',
+                data: data.map(d => d.total),
+                borderColor: '#667eea',
+                backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: '#764ba2',
+                pointBorderColor: '#fff',
+                pointRadius: 5,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                tooltip: { callbacks: { label: (ctx) => `${ctx.raw} kunjungan` } }
+            },
+            scales: {
+                y: { beginAtZero: true, ticks: { stepSize: 1 }, title: { display: true, text: 'Jumlah' } }
+            }
+        }
+    });
+}
+
+// Render cabang statistics table
+function renderCabangStats(data) {
+    const tbody = document.getElementById('cabangStatsBody');
+    if (!tbody) return;
+    
+    const total = data.reduce((sum, item) => sum + item.total, 0);
+    
+    if (data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center">Tidak ada data</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = data.map(item => {
+        const percentage = total > 0 ? ((item.total / total) * 100).toFixed(1) : 0;
+        return `
+            <tr>
+                <td><strong>${escapeHtml(item.cabang)}</strong></td>
+                <td>${item.total.toLocaleString()} kunjungan</td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="flex: 1; background: #e0e0e0; border-radius: 10px; overflow: hidden;">
+                            <div style="width: ${percentage}%; background: linear-gradient(90deg, #667eea, #764ba2); height: 8px; border-radius: 10px;"></div>
+                        </div>
+                        <span style="min-width: 45px;">${percentage}%</span>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+// Fungsi untuk mengisi dropdown AO berdasarkan cabang yang dipilih
+async function loadAODropdown() {
+    const cabang = document.getElementById('dashboardFilterCabang').value;
+    const aoSelect = document.getElementById('dashboardFilterAO');
+    
+    if (!aoSelect) return;
+    
+    // Reset dropdown
+    aoSelect.innerHTML = '<option value="all">Semua AO</option>';
+    
+    try {
+        let url = '/api/users/ao/list';
+        if (cabang !== 'all') {
+            url += `?cabang=${encodeURIComponent(cabang)}`;
+        }
+        
+        const response = await fetch(url, {
+            headers: {
+                'X-CSRF-TOKEN': getCsrfToken(),
+                'Accept': 'application/json'
+            },
+            credentials: 'include'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success && result.data) {
+            result.data.forEach(ao => {
+                aoSelect.innerHTML += `<option value="${escapeHtml(ao.name)}">${escapeHtml(ao.name)}${ao.cabang ? ` (${ao.cabang})` : ''}</option>`;
+            });
+        }
+    } catch (error) {
+        console.error('Error loading AO list:', error);
+    }
+}
+
+// Fungsi untuk menerapkan filter
+// ============ PERBAIKAN FUNGSI APPLY FILTERS ============
+function applyDashboardFilters() {
+    console.log('applyDashboardFilters dipanggil');
+    
+    const cabang = document.getElementById('dashboardFilterCabang')?.value || 'all';
+    const ao = document.getElementById('dashboardFilterAO')?.value || 'all';
+    const status = document.getElementById('dashboardFilterStatus')?.value || 'all';
+    const startDate = document.getElementById('dashboardFilterStartDate')?.value || '';
+    const endDate = document.getElementById('dashboardFilterEndDate')?.value || '';
+    
+    console.log('Filter values - Cabang:', cabang, 'AO:', ao, 'Status:', status, 'Start:', startDate, 'End:', endDate);
+    
+    // Update dashboardFilters
+    dashboardFilters = {
+        cabang: cabang,
+        ao: ao,
+        status: status,
+        start_date: startDate || null,
+        end_date: endDate || null
+    };
+    
+    // Panggil loadDashboard untuk refresh data
+    loadDashboard();
+    
+    // Update info filter display
+    if (typeof updateFilterInfoDisplay === 'function') {
+        updateFilterInfoDisplay();
+    }
+}
+
+// ============ PERBAIKAN FUNGSI RESET DASHBOARD FILTERS ============
+function resetDashboardFilters() {
+    console.log('resetDashboardFilters dipanggil');
+    
+    // Reset nilai input
+    const cabangSelect = document.getElementById('dashboardFilterCabang');
+    const aoSelect = document.getElementById('dashboardFilterAO');
+    const statusSelect = document.getElementById('dashboardFilterStatus');
+    const startDateInput = document.getElementById('dashboardFilterStartDate');
+    const endDateInput = document.getElementById('dashboardFilterEndDate');
+    
+    if (cabangSelect) cabangSelect.value = 'all';
+    if (statusSelect) statusSelect.value = 'all';
+    if (startDateInput) startDateInput.value = '';
+    if (endDateInput) endDateInput.value = '';
+    
+    // Reset AO dropdown ke semua AO
+    if (aoSelect) {
+        aoSelect.innerHTML = '<option value="all">Semua AO</option>';
+        if (typeof loadAODropdown === 'function') {
+            loadAODropdown();
+        }
+    }
+    
+    // Reset filter object
+    dashboardFilters = {
+        cabang: 'all',
+        ao: 'all',
+        status: 'all',
+        start_date: null,
+        end_date: null
+    };
+    
+    console.log('Filters reset:', dashboardFilters);
+    
+    // Load ulang dashboard
+    loadDashboard();
+    
+    if (typeof showToast === 'function') {
+        showToast('✅ Semua filter direset, menampilkan semua data', true);
+    }
+}
+
+// ========== QUICK DATE FUNCTIONS ==========
+// ============ PERBAIKAN FUNGSI QUICK DATE ============
+function setQuickDate(period) {
+    console.log('setQuickDate dipanggil dengan period:', period);
+    
+    const startDateInput = document.getElementById('dashboardFilterStartDate');
+    const endDateInput = document.getElementById('dashboardFilterEndDate');
+    const cabangSelect = document.getElementById('dashboardFilterCabang');
+    const aoSelect = document.getElementById('dashboardFilterAO');
+    const statusSelect = document.getElementById('dashboardFilterStatus');
+    
+    if (!startDateInput || !endDateInput) {
+        console.error('Date input elements not found');
+        return;
+    }
     
     const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
-    document.getElementById('filterStartDate').value = firstDay.toISOString().split('T')[0];
-    document.getElementById('filterEndDate').value = lastDay.toISOString().split('T')[0];
+    let startDate = null;
+    let endDate = null;
     
-    checkAuth();
-});
+    // Reset ke semua cabang dan semua AO terlebih dahulu
+    if (cabangSelect) cabangSelect.value = 'all';
+    if (aoSelect) aoSelect.innerHTML = '<option value="all">Semua AO</option>';
+    if (statusSelect) statusSelect.value = 'all';
+    
+    // Load ulang AO dropdown berdasarkan cabang 'all'
+    if (typeof loadAODropdown === 'function') {
+        loadAODropdown();
+    }
+    
+    // Tentukan tanggal berdasarkan period
+    if (period === 'today') {
+        const dateStr = today.toISOString().split('T')[0];
+        startDate = dateStr;
+        endDate = dateStr;
+        console.log('Filter Hari Ini:', startDate);
+    } 
+    else if (period === 'yesterday') {
+        const yesterday = new Date(today);
+        yesterday.setDate(today.getDate() - 1);
+        const dateStr = yesterday.toISOString().split('T')[0];
+        startDate = dateStr;
+        endDate = dateStr;
+        console.log('Filter Kemarin:', startDate);
+    }
+    else if (period === 'week') {
+        // Minggu ini (Senin - Minggu)
+        const day = today.getDay();
+        const diffToMonday = day === 0 ? 6 : day - 1;
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - diffToMonday);
+        const endOfWeek = new Date(startOfWeek);
+        endOfWeek.setDate(startOfWeek.getDate() + 6);
+        
+        startDate = startOfWeek.toISOString().split('T')[0];
+        endDate = endOfWeek.toISOString().split('T')[0];
+        console.log('Filter Minggu Ini:', startDate, 's/d', endDate);
+    }
+    else if (period === 'month') {
+        const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const endOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        startDate = startOfMonth.toISOString().split('T')[0];
+        endDate = endOfMonth.toISOString().split('T')[0];
+        console.log('Filter Bulan Ini:', startDate, 's/d', endDate);
+    }
+    else if (period === 'lastMonth') {
+        const startOfLastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const endOfLastMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+        startDate = startOfLastMonth.toISOString().split('T')[0];
+        endDate = endOfLastMonth.toISOString().split('T')[0];
+        console.log('Filter Bulan Lalu:', startDate, 's/d', endDate);
+    }
+    else if (period === 'year') {
+        startDate = `${today.getFullYear()}-01-01`;
+        endDate = `${today.getFullYear()}-12-31`;
+        console.log('Filter Tahun Ini:', startDate, 's/d', endDate);
+    }
+    
+    // Set nilai input date
+    startDateInput.value = startDate;
+    endDateInput.value = endDate;
+    
+    // Update dashboardFilters
+    if (typeof dashboardFilters !== 'undefined') {
+        dashboardFilters.cabang = 'all';
+        dashboardFilters.ao = 'all';
+        dashboardFilters.status = 'all';
+        dashboardFilters.start_date = startDate;
+        dashboardFilters.end_date = endDate;
+        console.log('dashboardFilters updated:', dashboardFilters);
+    }
+    
+    // Terapkan filter dan refresh dashboard
+    if (typeof applyDashboardFilters === 'function') {
+        applyDashboardFilters();
+    } else if (typeof loadDashboard === 'function') {
+        loadDashboard();
+    }
+    
+    // Tampilkan notifikasi
+    let periodText = '';
+    switch(period) {
+        case 'today': periodText = 'Hari Ini'; break;
+        case 'yesterday': periodText = 'Kemarin'; break;
+        case 'week': periodText = 'Minggu Ini'; break;
+        case 'month': periodText = 'Bulan Ini'; break;
+        case 'lastMonth': periodText = 'Bulan Lalu'; break;
+        case 'year': periodText = 'Tahun Ini'; break;
+    }
+    
+    if (typeof showToast === 'function') {
+        showToast(`✅ Menampilkan data ${periodText} untuk SEMUA cabang`, true);
+    }
+}
+
+// ============ INISIALISASI DEFAULT DATE UNTUK DASHBOARD ============
+function initDashboardDates() {
+    const startDateInput = document.getElementById('dashboardFilterStartDate');
+    const endDateInput = document.getElementById('dashboardFilterEndDate');
+    
+    if (startDateInput && endDateInput) {
+        // Set default: 30 hari terakhir
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        
+        startDateInput.value = startDate.toISOString().split('T')[0];
+        endDateInput.value = endDate.toISOString().split('T')[0];
+        
+        // Set ke dashboardFilters jika ada
+        if (typeof dashboardFilters !== 'undefined') {
+            dashboardFilters.start_date = startDateInput.value;
+            dashboardFilters.end_date = endDateInput.value;
+        }
+    }
+}
+
+// Panggil inisialisasi saat halaman dimuat
+// Tambahkan di dalam DOMContentLoaded:
+// initDashboardDates();
+
+    // ==================== EVENT LISTENERS ====================
+    document.addEventListener('DOMContentLoaded', function() {
+        // Login form
+        document.getElementById('loginForm')?.addEventListener('submit', (e) => {
+            e.preventDefault();
+            login(document.getElementById('loginUsername').value, document.getElementById('loginPassword').value);
+        });
+        
+        // Form kunjungan
+        document.getElementById('kunjunganForm')?.addEventListener('submit', saveKunjungan);
+        document.getElementById('btnCancel')?.addEventListener('click', resetForm);
+        
+        // Search buttons
+        document.getElementById('searchButton')?.addEventListener('click', searchData);
+        document.getElementById('resetButton')?.addEventListener('click', () => { 
+            document.getElementById('searchInput').value = ''; 
+            clearAllFilters(); // Ubah dari clearDateFilter menjadi clearAllFilters
+        });
+        document.getElementById('refreshButton')?.addEventListener('click', loadData);
+        
+        // Pagination
+        document.getElementById('prevPage')?.addEventListener('click', () => { if (currentPage > 1) { currentPage--; renderTable(); } });
+        document.getElementById('nextPage')?.addEventListener('click', () => { if (currentPage * rowsPerPage < filteredData.length) { currentPage++; renderTable(); } });
+        
+        // Search input enter key
+        document.getElementById('searchInput')?.addEventListener('keypress', (e) => { if (e.key === 'Enter') searchData(); });
+        
+        // Loading indicators
+        document.querySelectorAll('a, button[onclick]').forEach(el => {
+            if (el.getAttribute('href') && !el.getAttribute('href').startsWith('#')) {
+                el.addEventListener('click', () => {
+                    if (!el.classList.contains('no-loading')) {
+                        startLoadingBar();
+                    }
+                });
+            }
+        });
+        
+        // Form submit loading
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', () => {
+                startLoadingBar();
+            });
+        });
+        
+        // ========== DASHBOARD FILTER EVENT LISTENERS ==========
+        const applyFilterBtn = document.getElementById('dashboardApplyFilter');
+        if (applyFilterBtn) {
+            applyFilterBtn.addEventListener('click', applyDashboardFilters);
+        }
+        
+        const resetFilterBtn = document.getElementById('dashboardResetFilter');
+        if (resetFilterBtn) {
+            resetFilterBtn.addEventListener('click', resetDashboardFilters);
+        }
+        
+        const cabangFilter = document.getElementById('dashboardFilterCabang');
+        if (cabangFilter) {
+            cabangFilter.addEventListener('change', function() {
+                loadAODropdown();
+            });
+        }
+        
+        // Set default tanggal (1 bulan terakhir)
+        const startDateInput = document.getElementById('dashboardFilterStartDate');
+        const endDateInput = document.getElementById('dashboardFilterEndDate');
+        if (startDateInput && endDateInput) {
+            const oneMonthAgo = new Date();
+            oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+            const today = new Date();
+            
+            startDateInput.value = oneMonthAgo.toISOString().split('T')[0];
+            endDateInput.value = today.toISOString().split('T')[0];
+        }
+        
+        loadAODropdown();
+        
+        // ========== EVENT LISTENER UNTUK HASIL KUNJUNGAN ==========
+        const hasilKunjunganSelect = document.getElementById('hasilKunjungan');
+        const hasilLainnyaGroup = document.getElementById('hasilLainnyaGroup');
+        
+        if (hasilKunjunganSelect && hasilLainnyaGroup) {
+            if (hasilKunjunganSelect.value === 'Lainnya') {
+                hasilLainnyaGroup.style.display = 'block';
+            } else {
+                hasilLainnyaGroup.style.display = 'none';
+            }
+            
+            hasilKunjunganSelect.addEventListener('change', function() {
+                if (this.value === 'Lainnya') {
+                    hasilLainnyaGroup.style.display = 'block';
+                    const inputLainnya = document.getElementById('hasilKunjunganLainnya');
+                    if (inputLainnya) inputLainnya.focus();
+                } else {
+                    hasilLainnyaGroup.style.display = 'none';
+                    const inputLainnya = document.getElementById('hasilKunjunganLainnya');
+                    if (inputLainnya) inputLainnya.value = '';
+                }
+            });
+        }
+        
+        // ========== PREVIEW FOTO SEBELUM UPLOAD ==========
+        document.getElementById('foto')?.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('Ukuran foto maksimal 5MB!', false);
+                    this.value = '';
+                    return;
+                }
+                
+                const validTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+                if (!validTypes.includes(file.type)) {
+                    showToast('Format foto harus JPG, JPEG, atau PNG!', false);
+                    this.value = '';
+                    return;
+                }
+                
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const previewContainer = document.getElementById('fotoPreviewContainer');
+                    const previewImg = document.getElementById('fotoPreviewImg');
+                    const previewName = document.getElementById('fotoPreviewName');
+                    const previewSize = document.getElementById('fotoPreviewSize');
+                    
+                    previewImg.src = event.target.result;
+                    previewName.textContent = file.name;
+                    previewSize.textContent = ` (${(file.size / 1024).toFixed(1)} KB)`;
+                    previewContainer.classList.add('show');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // ========== EXPORT DROPDOWN ==========
+        document.addEventListener('click', function(e) {
+            const dropdown = document.querySelector('.export-dropdown');
+            const exportBtn = document.getElementById('exportButton');
+            const exportContent = document.getElementById('exportDropdown');
+            if (exportBtn && exportContent && dropdown) {
+                if (e.target === exportBtn || exportBtn.contains(e.target)) {
+                    e.stopPropagation();
+                    exportContent.style.display = exportContent.style.display === 'block' ? 'none' : 'block';
+                } else if (!dropdown.contains(e.target)) {
+                    exportContent.style.display = 'none';
+                }
+            }
+        });
+        
+        // Set default filter date range (current month)
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        document.getElementById('filterStartDate').value = firstDay.toISOString().split('T')[0];
+        document.getElementById('filterEndDate').value = lastDay.toISOString().split('T')[0];
+        
+        // ========== TAMBAHKAN KODE NO 7 DI SINI ==========
+        // Event listener untuk filter status pada tabel kunjungan
+        const filterStatus = document.getElementById('filterStatus');
+        if (filterStatus) {
+            filterStatus.addEventListener('change', function() {
+                filterByStatus();
+            });
+        }
+        // ========== SAMPAI SINI ==========
+        
+        // Check authentication
+        checkAuth();
+    });
     </script>
     
-    <!-- ==================== CHAT BOX AI ASSISTANT ==================== -->
+<!-- ==================== CHAT BOX AI ASSISTANT (DENGAN DRAG & DROP - SUPPORT MOBILE) ==================== -->
 <style>
-    /* Chat Button - Posisi Kanan Bawah */
+    /* Chat Button - Posisi Awal Kanan Bawah, Bisa di-drag */
     .chat-button {
         position: fixed !important;
-        bottom: 25px !important;
-        right: 25px !important;
-        left: auto !important;
-        top: auto !important;
+        bottom: 25px;
+        right: 25px;
+        left: auto;
+        top: auto;
         width: auto !important;
         min-width: 160px !important;
         height: 56px !important;
@@ -6159,7 +7125,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
         border: none !important;
-        cursor: pointer !important;
+        cursor: grab !important;
         box-shadow: 0 8px 25px rgba(102,126,234,0.4) !important;
         z-index: 999999 !important;
         display: flex !important;
@@ -6172,19 +7138,20 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         letter-spacing: 0.5px !important;
         overflow: hidden !important;
         margin: 0 !important;
-        animation: pulseButton 2s infinite !important;
+        transition: box-shadow 0.2s, transform 0.1s, opacity 0.2s !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        touch-action: none !important; /* Mencegah scroll saat drag di mobile */
+    }
+    
+    .chat-button:active {
+        cursor: grabbing !important;
     }
     
     /* Sembunyikan saat logout */
     .chat-button.hide-chat,
     .chat-window.hide-chat {
         display: none !important;
-    }
-    
-    @keyframes pulseButton {
-        0% { box-shadow: 0 8px 25px rgba(102,126,234,0.4); transform: scale(1); }
-        50% { box-shadow: 0 8px 35px rgba(102,126,234,0.8); transform: scale(1.02); }
-        100% { box-shadow: 0 8px 25px rgba(102,126,234,0.4); transform: scale(1); }
     }
     
     .chat-button:hover {
@@ -6195,6 +7162,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
     .chat-button i:first-child {
         font-size: 24px !important;
         animation: iconWave 1s ease-in-out infinite !important;
+        pointer-events: none !important;
     }
     
     @keyframes iconWave {
@@ -6207,6 +7175,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         font-size: 14px !important;
         font-weight: 600 !important;
         color: white !important;
+        pointer-events: none !important;
     }
     
     .chat-button .chat-badge {
@@ -6221,6 +7190,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         border-radius: 30px !important;
         animation: badgePulse 1s infinite !important;
         z-index: 999999 !important;
+        pointer-events: none !important;
     }
     
     @keyframes badgePulse {
@@ -6233,15 +7203,16 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         font-size: 12px !important;
         transition: transform 0.3s ease !important;
         margin-left: 5px !important;
+        pointer-events: none !important;
     }
     
-    /* Chat Window */
+    /* Chat Window - Bisa di-drag dari header */
     .chat-window {
         position: fixed !important;
-        bottom: 100px !important;
-        right: 25px !important;
-        left: auto !important;
-        top: auto !important;
+        bottom: 100px;
+        right: 25px;
+        left: auto;
+        top: auto;
         width: 420px !important;
         height: 580px !important;
         background: white !important;
@@ -6253,6 +7224,12 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         overflow: hidden !important;
         border: 1px solid rgba(102,126,234,0.3) !important;
         margin: 0 !important;
+        transition: box-shadow 0.2s, opacity 0.2s !important;
+    }
+    
+    .chat-window.dragging-window {
+        opacity: 0.95 !important;
+        cursor: grabbing !important;
     }
     
     .chat-window.open {
@@ -6272,12 +7249,21 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
+        cursor: grab !important;
+        user-select: none !important;
+        -webkit-tap-highlight-color: transparent !important;
+        touch-action: none !important; /* Mencegah scroll saat drag di mobile */
+    }
+    
+    .chat-header:active {
+        cursor: grabbing !important;
     }
     
     .chat-header-left {
         display: flex !important;
         align-items: center !important;
         gap: 14px !important;
+        pointer-events: none !important;
     }
     
     .chat-avatar {
@@ -6330,6 +7316,14 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         border-radius: 50% !important;
         cursor: pointer !important;
         font-size: 16px !important;
+        z-index: 10 !important;
+        position: relative !important;
+        transition: all 0.2s !important;
+    }
+    
+    .chat-header button:hover {
+        background: rgba(255,255,255,0.4) !important;
+        transform: scale(1.05);
     }
     
     .chat-messages {
@@ -6468,11 +7462,17 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         align-items: center !important;
         gap: 6px !important;
         transition: all 0.2s !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
     
     .suggestion-chip:hover {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
         color: white !important;
+        transform: scale(1.02);
+    }
+    
+    .suggestion-chip:active {
+        transform: scale(0.98);
     }
     
     .chat-input-area {
@@ -6490,6 +7490,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         border-radius: 30px !important;
         font-size: 13px !important;
         outline: none !important;
+        transition: all 0.2s !important;
     }
     
     .chat-input-area input:focus {
@@ -6505,10 +7506,15 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         border: none !important;
         cursor: pointer !important;
         transition: all 0.2s !important;
+        -webkit-tap-highlight-color: transparent !important;
     }
     
     .chat-input-area button:hover {
         transform: scale(1.05) !important;
+    }
+    
+    .chat-input-area button:active {
+        transform: scale(0.95) !important;
     }
     
     .welcome-banner {
@@ -6526,6 +7532,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
         font-size: 13px !important;
     }
     
+    /* Responsive Mobile */
     @media (max-width: 480px) {
         .chat-button {
             min-width: 130px !important;
@@ -6541,6 +7548,25 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
             height: 520px !important;
             bottom: 85px !important;
         }
+        .message-content {
+            max-width: 85% !important;
+            font-size: 12px !important;
+        }
+        .suggestion-chip {
+            font-size: 10px !important;
+            padding: 6px 12px !important;
+        }
+    }
+    
+    /* Untuk mobile, beri feedback touch */
+    @media (max-width: 768px) {
+        .chat-button:active {
+            opacity: 0.8 !important;
+            transform: scale(0.98) !important;
+        }
+        .chat-header:active {
+            opacity: 0.95 !important;
+        }
     }
 </style>
 
@@ -6554,7 +7580,7 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
 
 <!-- Chat Window -->
 <div class="chat-window hide-chat" id="chatWindow">
-    <div class="chat-header">
+    <div class="chat-header" id="chatHeaderDrag">
         <div class="chat-header-left">
             <div class="chat-avatar">
                 <i class="fas fa-robot"></i>
@@ -6582,7 +7608,8 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
                 • Status dan role user<br>
                 • Fitur notifikasi & reminder<br>
                 • Dan masih banyak lagi!<br><br>
-                💡 Coba tanyakan: "Cara mengisi data?" atau "Bagaimana approve?"
+                💡 Coba tanyakan: "Cara mengisi data?" atau "Bagaimana approve?"<br><br>
+                ✨ <strong>Tips:</strong> Anda bisa drag chat window ini dari header untuk memindahkannya (support mobile)!
                 <span class="message-time">Sekarang</span>
             </div>
         </div>
@@ -6603,7 +7630,258 @@ document.getElementById('foto')?.addEventListener('change', function(e) {
 </div>
 
 <script>
-// ==================== CHAT BOX AI ASSISTANT ====================
+// ==================== CHAT BOX AI ASSISTANT DENGAN DRAG & DROP (SUPPORT MOBILE) ====================
+
+// Variabel untuk drag button
+var chatButtonDrag = {
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialLeft: null,
+    initialTop: null,
+    initialRight: null,
+    initialBottom: null
+};
+
+// Variabel untuk drag window
+var chatWindowDrag = {
+    isDragging: false,
+    startX: 0,
+    startY: 0,
+    initialLeft: null,
+    initialTop: null,
+    initialRight: null,
+    initialBottom: null
+};
+
+// Inisialisasi drag & drop (Support Desktop + Mobile)
+function initDragAndDrop() {
+    var chatButton = document.getElementById('chatButton');
+    var chatWindow = document.getElementById('chatWindow');
+    var chatHeader = document.getElementById('chatHeaderDrag');
+    
+    if (!chatButton || !chatWindow || !chatHeader) return;
+    
+    // ============ DRAG UNTUK CHAT BUTTON (Desktop + Mobile) ============
+    function startDragButton(e) {
+        // Cegah jika klik pada badge
+        if (e.target.classList && e.target.classList.contains('chat-badge')) return;
+        
+        e.preventDefault();
+        
+        // Dapatkan koordinat (support mouse dan touch)
+        var clientX = e.clientX;
+        var clientY = e.clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        
+        var rect = chatButton.getBoundingClientRect();
+        var computedStyle = window.getComputedStyle(chatButton);
+        
+        chatButtonDrag.startX = clientX;
+        chatButtonDrag.startY = clientY;
+        chatButtonDrag.initialLeft = parseFloat(computedStyle.left);
+        chatButtonDrag.initialTop = parseFloat(computedStyle.top);
+        chatButtonDrag.isDragging = true;
+        
+        // Ubah style untuk drag
+        chatButton.style.cursor = 'grabbing';
+        chatButton.style.transition = 'none';
+        chatButton.style.opacity = '0.8';
+        
+        // Register event listeners
+        document.addEventListener('mousemove', onChatButtonMove);
+        document.addEventListener('mouseup', onChatButtonEnd);
+        document.addEventListener('touchmove', onChatButtonMove, { passive: false });
+        document.addEventListener('touchend', onChatButtonEnd);
+    }
+    
+    function onChatButtonMove(e) {
+        if (!chatButtonDrag.isDragging) return;
+        e.preventDefault();
+        
+        // Dapatkan koordinat (support mouse dan touch)
+        var clientX = e.clientX;
+        var clientY = e.clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        
+        var dx = clientX - chatButtonDrag.startX;
+        var dy = clientY - chatButtonDrag.startY;
+        
+        var newLeft = chatButtonDrag.initialLeft + dx;
+        var newTop = chatButtonDrag.initialTop + dy;
+        
+        // Batasi agar tidak keluar viewport
+        var buttonRect = chatButton.getBoundingClientRect();
+        var maxX = window.innerWidth - buttonRect.width - 10;
+        var maxY = window.innerHeight - buttonRect.height - 10;
+        var minX = 10;
+        var minY = 10;
+        
+        newLeft = Math.min(maxX, Math.max(minX, newLeft));
+        newTop = Math.min(maxY, Math.max(minY, newTop));
+        
+        chatButton.style.left = newLeft + 'px';
+        chatButton.style.top = newTop + 'px';
+        chatButton.style.right = 'auto';
+        chatButton.style.bottom = 'auto';
+    }
+    
+    function onChatButtonEnd() {
+        if (!chatButtonDrag.isDragging) return;
+        
+        chatButtonDrag.isDragging = false;
+        chatButton.style.cursor = 'grab';
+        chatButton.style.transition = '';
+        chatButton.style.opacity = '1';
+        
+        // Simpan posisi ke localStorage
+        var left = chatButton.style.left;
+        var top = chatButton.style.top;
+        if (left && top && left !== 'auto' && top !== 'auto') {
+            localStorage.setItem('chatButtonLeft', left);
+            localStorage.setItem('chatButtonTop', top);
+        }
+        
+        // Cleanup event listeners
+        document.removeEventListener('mousemove', onChatButtonMove);
+        document.removeEventListener('mouseup', onChatButtonEnd);
+        document.removeEventListener('touchmove', onChatButtonMove);
+        document.removeEventListener('touchend', onChatButtonEnd);
+    }
+    
+    chatButton.addEventListener('mousedown', startDragButton);
+    chatButton.addEventListener('touchstart', startDragButton, { passive: false });
+    
+    // ============ DRAG UNTUK CHAT WINDOW (melalui header) (Desktop + Mobile) ============
+    function startDragWindow(e) {
+        // Jangan drag jika klik pada tombol close
+        if (e.target.closest && e.target.closest('#closeChatBtn')) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Dapatkan koordinat (support mouse dan touch)
+        var clientX = e.clientX;
+        var clientY = e.clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        
+        var rect = chatWindow.getBoundingClientRect();
+        var computedStyle = window.getComputedStyle(chatWindow);
+        
+        chatWindowDrag.startX = clientX;
+        chatWindowDrag.startY = clientY;
+        chatWindowDrag.initialLeft = parseFloat(computedStyle.left);
+        chatWindowDrag.initialTop = parseFloat(computedStyle.top);
+        chatWindowDrag.isDragging = true;
+        
+        chatWindow.style.cursor = 'grabbing';
+        chatWindow.style.transition = 'none';
+        chatWindow.style.opacity = '0.95';
+        chatWindow.classList.add('dragging-window');
+        
+        document.addEventListener('mousemove', onChatWindowMove);
+        document.addEventListener('mouseup', onChatWindowEnd);
+        document.addEventListener('touchmove', onChatWindowMove, { passive: false });
+        document.addEventListener('touchend', onChatWindowEnd);
+    }
+    
+    function onChatWindowMove(e) {
+        if (!chatWindowDrag.isDragging) return;
+        e.preventDefault();
+        
+        // Dapatkan koordinat (support mouse dan touch)
+        var clientX = e.clientX;
+        var clientY = e.clientY;
+        if (e.touches) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+        }
+        
+        var dx = clientX - chatWindowDrag.startX;
+        var dy = clientY - chatWindowDrag.startY;
+        
+        var newLeft = chatWindowDrag.initialLeft + dx;
+        var newTop = chatWindowDrag.initialTop + dy;
+        
+        // Batasi agar tidak keluar viewport
+        var windowRect = chatWindow.getBoundingClientRect();
+        var maxX = window.innerWidth - windowRect.width - 10;
+        var maxY = window.innerHeight - windowRect.height - 10;
+        var minX = 10;
+        var minY = 60; // Biar tidak terlalu ke atas
+        
+        newLeft = Math.min(maxX, Math.max(minX, newLeft));
+        newTop = Math.min(maxY, Math.max(minY, newTop));
+        
+        chatWindow.style.left = newLeft + 'px';
+        chatWindow.style.top = newTop + 'px';
+        chatWindow.style.right = 'auto';
+        chatWindow.style.bottom = 'auto';
+    }
+    
+    function onChatWindowEnd() {
+        if (!chatWindowDrag.isDragging) return;
+        
+        chatWindowDrag.isDragging = false;
+        chatWindow.style.cursor = '';
+        chatWindow.style.transition = '';
+        chatWindow.style.opacity = '1';
+        chatWindow.classList.remove('dragging-window');
+        
+        // Simpan posisi window ke localStorage
+        var left = chatWindow.style.left;
+        var top = chatWindow.style.top;
+        if (left && top && left !== 'auto' && top !== 'auto') {
+            localStorage.setItem('chatWindowLeft', left);
+            localStorage.setItem('chatWindowTop', top);
+        }
+        
+        document.removeEventListener('mousemove', onChatWindowMove);
+        document.removeEventListener('mouseup', onChatWindowEnd);
+        document.removeEventListener('touchmove', onChatWindowMove);
+        document.removeEventListener('touchend', onChatWindowEnd);
+    }
+    
+    chatHeader.addEventListener('mousedown', startDragWindow);
+    chatHeader.addEventListener('touchstart', startDragWindow, { passive: false });
+}
+
+// Fungsi untuk memuat posisi dari localStorage
+function loadSavedPositions() {
+    var chatButton = document.getElementById('chatButton');
+    var chatWindow = document.getElementById('chatWindow');
+    
+    if (chatButton) {
+        var savedLeft = localStorage.getItem('chatButtonLeft');
+        var savedTop = localStorage.getItem('chatButtonTop');
+        if (savedLeft && savedTop && savedLeft !== 'null' && savedTop !== 'null') {
+            chatButton.style.left = savedLeft;
+            chatButton.style.top = savedTop;
+            chatButton.style.right = 'auto';
+            chatButton.style.bottom = 'auto';
+        }
+    }
+    
+    if (chatWindow) {
+        var savedWinLeft = localStorage.getItem('chatWindowLeft');
+        var savedWinTop = localStorage.getItem('chatWindowTop');
+        if (savedWinLeft && savedWinTop && savedWinLeft !== 'null' && savedWinTop !== 'null') {
+            chatWindow.style.left = savedWinLeft;
+            chatWindow.style.top = savedWinTop;
+            chatWindow.style.right = 'auto';
+            chatWindow.style.bottom = 'auto';
+        }
+    }
+}
 
 // Fungsi untuk menyembunyikan chat box (saat logout)
 function hideChatBox() {
@@ -6632,62 +7910,11 @@ function showChatBox() {
     }
 }
 
-// Inisialisasi event listener
-document.addEventListener('DOMContentLoaded', function() {
-    // Mulai dengan chat box tersembunyi (belum login)
-    hideChatBox();
-    
-    // Event listener untuk tombol chat
-    var chatButton = document.getElementById('chatButton');
-    var closeChatBtn = document.getElementById('closeChatBtn');
-    
-    if (chatButton) {
-        chatButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            toggleChat();
-        });
-    }
-    
-    if (closeChatBtn) {
-        closeChatBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeChat();
-        });
-    }
-    
-    // Cek login setiap 500ms
-    var loginCheckInterval = setInterval(function() {
-        var mainContent = document.getElementById('mainContent');
-        var isLoggedIn = mainContent && mainContent.style.display === 'block';
-        
-        if (isLoggedIn && typeof currentUser !== 'undefined' && currentUser) {
-            showChatBox();
-            
-            if (!window.greetingShown) {
-                window.greetingShown = true;
-                setTimeout(function() {
-                    var greeting = 'Selamat datang kembali, ' + currentUser.name + '! 👋\n\n';
-                    if (currentUser.role === 'ao') {
-                        greeting += 'Sebagai AO ' + currentUser.cabang + ', Anda bisa mengisi dan mengedit data kunjungan.';
-                    } else if (currentUser.role === 'manager') {
-                        greeting += 'Sebagai Manager ' + currentUser.cabang + ', Anda bisa menyetujui/menolak data kunjungan.';
-                    } else if (currentUser.role === 'admin') {
-                        greeting += 'Sebagai Administrator, Anda memiliki akses penuh ke sistem.';
-                    }
-                    addMessage(greeting, 'bot');
-                }, 1500);
-            }
-        } else {
-            hideChatBox();
-            window.greetingShown = false;
-        }
-    }, 500);
-});
-
 // Fungsi toggle chat window
 function toggleChat() {
+    // Jangan toggle jika sedang drag
+    if (chatButtonDrag.isDragging || chatWindowDrag.isDragging) return;
+    
     var chatWindow = document.getElementById('chatWindow');
     var chevron = document.querySelector('.chat-button .chevron');
     var chatBadge = document.getElementById('chatBadge');
@@ -6724,7 +7951,7 @@ function getAIResponse(userMessage) {
     var msg = userMessage.toLowerCase().trim();
     
     if (msg.match(/^(hai|halo|hello|hey|selamat|assalamualaikum)/i)) {
-        return "Halo! Selamat datang di Sistem Kunjungan BPRS Amanah Bangsa! 👋\n\nAda yang bisa saya bantu hari ini? Silakan tanyakan tentang:\n• Cara menggunakan sistem\n• Proses approve/reject\n• Export laporan\n• Manajemen user\n• Fitur-fitur lainnya";
+        return "Halo! Selamat datang di Sistem Kunjungan BPRS Amanah Bangsa! 👋\n\nAda yang bisa saya bantu hari ini? Silakan tanyakan tentang:\n• Cara menggunakan sistem\n• Proses approve/reject\n• Export laporan\n• Manajemen user\n• Fitur-fitur lainnya\n\n💡 Tips: Anda bisa memindahkan (drag) chat window ini dari bagian header! (Support mobile)";
     }
     
     if (msg.match(/cara isi|mengisi data|input data|tambah data|form/i)) {
@@ -6748,14 +7975,18 @@ function getAIResponse(userMessage) {
     }
     
     if (msg.match(/bantuan|help|menu|hal yang bisa ditanyakan/i)) {
-        return "📋 Yang Bisa Saya Bantu:\n\n1. Cara mengisi data kunjungan\n2. Proses approve/reject data\n3. Export laporan (Excel/PDF/Word)\n4. Status data (Pending/Approved/Rejected)\n5. Role dan hak akses\n6. Notifikasi dan reminder\n7. Manajemen user (Admin)\n\nSilakan tanyakan lebih spesifik!";
+        return "📋 Yang Bisa Saya Bantu:\n\n1. Cara mengisi data kunjungan\n2. Proses approve/reject data\n3. Export laporan (Excel/PDF/Word)\n4. Status data (Pending/Approved/Rejected)\n5. Role dan hak akses\n6. Notifikasi dan reminder\n7. Manajemen user (Admin)\n8. Memindahkan (drag) chat window (support mobile!)\n\nSilakan tanyakan lebih spesifik!";
+    }
+    
+    if (msg.match(/drag|pindah|memindahkan|move/i)) {
+        return "🖱️ Cara Memindahkan Chat:\n\n• Chat Button: Sentuh tahan (tap and hold) lalu geser tombol AI Assistant ke mana saja\n• Chat Window: Sentuh tahan pada bagian header (warna ungu) lalu geser\n\nPosisi akan otomatis disimpan untuk sesi berikutnya!\n\n📱 Support penuh untuk mobile (Android & iOS)!";
     }
     
     if (msg.match(/terima kasih|thank|thanks|makasih/i)) {
         return "Sama-sama! 😊 Senang bisa membantu. Jika ada pertanyaan lain, jangan ragu untuk bertanya ya!";
     }
     
-    return "Maaf, saya belum mengerti pertanyaan Anda 🤔\n\nCoba tanyakan hal berikut:\n• 'Cara mengisi data kunjungan?'\n• 'Bagaimana cara approve data?'\n• 'Apa perbedaan status pending dan approved?'\n• 'Cara export ke Excel?'\n\nAtau ketik 'bantuan' untuk melihat semua topik yang bisa saya bantu.";
+    return "Maaf, saya belum mengerti pertanyaan Anda 🤔\n\nCoba tanyakan hal berikut:\n• 'Cara mengisi data kunjungan?'\n• 'Bagaimana cara approve data?'\n• 'Apa perbedaan status pending dan approved?'\n• 'Cara export ke Excel?'\n• 'Bagaimana cara memindahkan chat?'\n\nAtau ketik 'bantuan' untuk melihat semua topik yang bisa saya bantu.";
 }
 
 // Fungsi send message
@@ -6828,6 +8059,76 @@ function hideTypingIndicator() {
     var typingIndicator = document.getElementById('typingIndicator');
     if (typingIndicator) typingIndicator.remove();
 }
+
+// Inisialisasi event listener
+document.addEventListener('DOMContentLoaded', function() {
+    // Mulai dengan chat box tersembunyi (belum login)
+    hideChatBox();
+    
+    // Inisialisasi drag & drop (support mobile)
+    initDragAndDrop();
+    
+    // Load posisi tersimpan
+    loadSavedPositions();
+    
+    // Event listener untuk tombol chat
+    var chatButton = document.getElementById('chatButton');
+    var closeChatBtn = document.getElementById('closeChatBtn');
+    
+    if (chatButton) {
+        chatButton.addEventListener('click', function(e) {
+            // Jangan toggle jika sedang drag
+            if (chatButtonDrag.isDragging) return;
+            e.preventDefault();
+            e.stopPropagation();
+            toggleChat();
+        });
+        
+        // Untuk mobile, cegah double fire
+        chatButton.addEventListener('touchstart', function(e) {
+            if (chatButtonDrag.isDragging) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    if (closeChatBtn) {
+        closeChatBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            closeChat();
+        });
+    }
+    
+    // Cek login setiap 500ms
+    var loginCheckInterval = setInterval(function() {
+        var mainContent = document.getElementById('mainContent');
+        var isLoggedIn = mainContent && mainContent.style.display === 'block';
+        
+        if (isLoggedIn && typeof currentUser !== 'undefined' && currentUser) {
+            showChatBox();
+            
+            if (!window.greetingShown) {
+                window.greetingShown = true;
+                setTimeout(function() {
+                    var greeting = 'Selamat datang kembali, ' + currentUser.name + '! 👋\n\n';
+                    if (currentUser.role === 'ao') {
+                        greeting += 'Sebagai AO ' + currentUser.cabang + ', Anda bisa mengisi dan mengedit data kunjungan.';
+                    } else if (currentUser.role === 'manager') {
+                        greeting += 'Sebagai Manager ' + currentUser.cabang + ', Anda bisa menyetujui/menolak data kunjungan.';
+                    } else if (currentUser.role === 'admin') {
+                        greeting += 'Sebagai Administrator, Anda memiliki akses penuh ke sistem.';
+                    }
+                    greeting += '\n\n💡 Tips: Anda bisa drag chat window ini dari header untuk memindahkannya! (Support mobile)';
+                    addMessage(greeting, 'bot');
+                }, 1500);
+            }
+        } else {
+            hideChatBox();
+            window.greetingShown = false;
+        }
+    }, 500);
+});
 </script>
 </body>
 </html>
